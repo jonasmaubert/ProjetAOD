@@ -66,24 +66,26 @@ void getNbLigne(int* nbLigne,int* longest, char* nomFichier) {
 
 int B(int i, int j, int* tab[][], char tabF1[][], char tabF2 [][]) {
 	int res =0;
-	int n = tab.length;
-	int m = tab[0].length;
+	int n = tab.length - 1;
+	int m = tab[0].length - 1;
 	if(tab[i][j] != -1) {
 		return tab[i][j];
 	}
 	//TODO: que se passe t'il si des fichiers sont vide?
 	if (i==n && j==m) {
 		//return le cout de la dernière substitution
-		return c(n,m); 
+		return c(tabF1[i],tabF2[j]); 
 	}
 	if(i==n) {
-		for (int k = j; k< m;k++) {
+		//On ajoute les lignes manquantes
+		for (int k = j; k <= m;k++) {
 			res+=10+strlen(tabF2[k]);
 		}
 		return res;
 	}
 	
 	if (j==m) {
+		//On détruit les lignes en trop
 		if (i==n-1) {
 			return 10;
 		} else {
@@ -92,7 +94,7 @@ int B(int i, int j, int* tab[][], char tabF1[][], char tabF2 [][]) {
 	}
 	/*cas général*/
 	res = B(i,j-1) + 10 + strlen(tabF2[j]); //cas ajout
-	int aux = B(i-1,j-1) + c(i,j); //cas sub
+	int aux = B(i-1,j-1) + c(tabF1[i],tabF2[j]); //cas sub
 	if (aux < res) {
 		res = aux;
 	}
@@ -101,10 +103,19 @@ int B(int i, int j, int* tab[][], char tabF1[][], char tabF2 [][]) {
 		res = aux;
 	}
 	//k?????
-	k
+	int k;
 	aux = B(i-k,j) +15; //cas dest mult
 	if (aux < res) {
 		res = aux;
+	}
+}
+
+int c(char *ligne1, char *ligne2 ) {
+	if (ligne1 == ligne2) {
+		return 0; // ligne identique, pas de substitution
+	}
+	else {
+		return 10 + strlen(ligne2); //cout d'une substitution
 	}
 }
 /*TODO: 
@@ -114,6 +125,6 @@ int B(int i, int j, int* tab[][], char tabF1[][], char tabF2 [][]) {
  * On cerche le patch de cout minimal avec les algos vus en cours:
  * On peut commencer par chercher le cout de ce patch puis ajouter les éléments 
  * pour dégager les différentes instructions que l'on recherche
- * - implementer c (cout de substitution)
+ * 
  */
 
