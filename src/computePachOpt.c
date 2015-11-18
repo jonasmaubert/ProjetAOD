@@ -12,12 +12,20 @@
 /*Prototypes de fonction*/
 void getNbLigne(int* nbLigne, int* longest, char* nomFichier);
 
-/*
- * gcc -Wall -std=c99 src/computePachOpt.c -o computePatchOpt
+
+ //gcc -Wall -Wextra -std=c99 src/computePachOpt.c -o computePatchOpt
+ 
+ /*
+ *Fonction qui créé la patch de coup minimal entre deux fichiers
+ * @param fichier initial
+ * @param fichier final
+ * @param patch
  */
 int main(int argc, char** argv)
 {
-	
+	if (argc != 4 ) {
+		printf("./bin fichiers1 fichiers2 patch")
+	}
 	int nbLigne1;
 	int nbLigne2;
 	int taillePlusLongueLigne = 0;
@@ -39,14 +47,17 @@ int main(int argc, char** argv)
 	fclose(fichier2);
 	/*Recherche du patch de cout minimal*/
 	
-	int tabBellMan[nbLigne1][nbLigne2];
-	for (int k = 0;k<nbLigne1; k++ ) {
-		for (int l = 0; l< nbLigne2; l++) {
+	int tabBellMan[nbLigne1 + 1][nbLigne2 + 1];
+	for (int k = 0;k<=nbLigne1; k++ ) {
+		for (int l = 0; l<= nbLigne2; l++) {
 			tabBellMan[k][l] = -1; //cette valeur correspond a une case non traité
 		}
 	}
-	
-	int res = B(0,1,&tabBellMan, tab1, tab2);
+	//Cette chaine de caractère contient en réalité la suite des instructions a effectuer dans le patch
+	char *instructions = "";
+	int res = B(1, 1, &tabBellMan, tab1, tab2, instructions);
+	//On peut maintenant écrire le patch (argv[3])
+	writePatch(instructions,argv[3]);
 	return(EXIT_SUCCESS);
 }
 
@@ -64,51 +75,80 @@ void getNbLigne(int* nbLigne,int* longest, char* nomFichier) {
 	fclose(fichier);
 }
 
-int B(int i, int j, int* tab[][], char tabF1[][], char tabF2 [][]) {
+int B(int i, int j, int* tab[][], char tabF1[][], char tabF2 [][], char * inst) {
 	int res =0;
 	int n = tab.length - 1;
 	int m = tab[0].length - 1;
+	char * instTmp;
 	if(tab[i][j] != -1) {
 		return tab[i][j];
 	}
 	//TODO: que se passe t'il si des fichiers sont vide?
+	//premier if pas vraiment obligatoire nan? a voir...
 	if (i==n && j==m) {
 		//return le cout de la dernière substitution
-		return c(tabF1[i],tabF2[j]); 
+		sprintf(instTmp,"= %d\n",i);
+		strcat(instTmp, tabF2[j]);
+		strcat(instTmp, "\n");
+		strcat(inst,instTmp); // inst = inst +"= i\n Fichiers2(j)\n"
+		return c(tabF1[i],tabF2[j]);
 	}
-	if(i==n) {
-		//On ajoute les lignes manquantes
-		for (int k = j; k <= m;k++) {
+	if(i==n + 1) {
+		//On ajoute les lignes manquantes après i.
+		for (int k = m; k >= j;k--) {
+			sprintf(instTmp,"+ %d\n",n);
+			strcat(instTmp, tabF2[k]);
+			strcat(instTmp, "\n");
+			strcat(inst,instTmp); // inst = inst + "+ n\n Fichiers2(k)\n"
 			res+=10+strlen(tabF2[k]);
 		}
+
 		return res;
 	}
-	
-	if (j==m) {
+	if (j== m+1) {
 		//On détruit les lignes en trop
 		if (i==n-1) {
+			strcat(inst, "d %d\n", n);
 			return 10;
 		} else {
+			strcat(inst, "D %d %d\n",i , (n-i));
 			return 15;
 		}
 	}
 	/*cas général*/
-	res = B(i,j-1) + 10 + strlen(tabF2[j]); //cas ajout
-	int aux = B(i-1,j-1) + c(tabF1[i],tabF2[j]); //cas sub
+	//ajout ATTENTION L'AJOUT SE FAIT EN I-1 (pour se mettre "avant" la ligne i)
+	res = B(i,j+1, tabF1, tabF2, inst) + 10 + strlen(tabF2[j]); 
+	sprintf(instTmp,"+ %d\n",i-1);
+	strcat(instTmp, tabF2[j]);
+	strcat(instTmp, "\n");
+	 // substitution
+	int aux = B(i+1,j+1, tabF1, tabF2, inst) + c(tabF1[i],tabF2[j]);
 	if (aux < res) {
+		sprintf(instTmp,"= %d\n",i);
+		strcat(instTmp, tabF2[j]);
+		strcat(instTmp, "\n");
 		res = aux;
 	}
-	aux = B(i-1,j) +10; //cas dest unique
+	// destruction unique
+	aux = B(i+1,j, tabF1, tabF2, inst) +10; 
 	if (aux < res) {
+		sprintf(instTmp, "d %d\n", i);
 		res = aux;
 	}
-	//k?????
+	//destruction multiple,on doit ester pour chaque valeur de k possible
 	int k;
-	aux = B(i-k,j) +15; //cas dest mult
-	if (aux < res) {
-		res = aux;
+	for (int l = 2; l <= n - i; k++ ) {
+		aux = B(i + l,j, tabF1, tabF2, inst) +15; 
+		if (auxDestMult < res) {
+			sprintf(instTmp,"D %d %d\n", i, i+l);
+			res = aux;
+		}
 	}
+	tab[i][j] = res;
+	strcat(inst,instTmp);
+	return res;
 }
+
 
 int c(char *ligne1, char *ligne2 ) {
 	if (ligne1 == ligne2) {
@@ -118,13 +158,17 @@ int c(char *ligne1, char *ligne2 ) {
 		return 10 + strlen(ligne2); //cout d'une substitution
 	}
 }
+
+void writePatch(char *inst, char* nomFichier) {
+	FILE* patch = fopen(nomFichier,"w");
+	fprintf(patch, inst);
+	fclose(patch);
+}
 /*TODO: 
- * Parser le fichier1 pour en récuperer toute les données (sous quelle forme? tab?)
- * Faire de même avec le fichier 2
- * (on fait ça car pour trouver le patch de cout min on va devoir lire plusieurs fois caque ligne)
- * On cerche le patch de cout minimal avec les algos vus en cours:
- * On peut commencer par chercher le cout de ce patch puis ajouter les éléments 
- * pour dégager les différentes instructions que l'on recherche
- * 
+ * - Gerer la destruction multiple : DONE
+ * - Ajouter la génération des lignes de commandes dans le patch, 
+ *	pour cela on va remplir un char* sous la forme suivante: "instr1 \n instr2 \n ..." : DONE
+ * - generer le patch :DONE
+ * - Maintenant c'est phase de débug de porc <3<3<3 (doit y avoir des fautes de merde de partout)
  */
 
