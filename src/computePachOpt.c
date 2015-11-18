@@ -38,17 +38,15 @@ int main(int argc, char** argv)
 	fclose(fichier1);
 	fclose(fichier2);
 	/*Recherche du patch de cout minimal*/
-	/*
-	 *
-	 * 
-	 * 
-	 * 
-	 * 
-	 * 
-	 */
 	
+	int tabBellMan[nbLigne1][nbLigne2];
+	for (int k = 0;k<nbLigne1; k++ ) {
+		for (int l = 0; l< nbLigne2; l++) {
+			tabBellMan[k][l] = -1; //cette valeur correspond a une case non traité
+		}
+	}
 	
-	
+	int res = B(0,1,&tabBellMan, tab1, tab2);
 	return(EXIT_SUCCESS);
 }
 
@@ -66,6 +64,49 @@ void getNbLigne(int* nbLigne,int* longest, char* nomFichier) {
 	fclose(fichier);
 }
 
+int B(int i, int j, int* tab[][], char tabF1[][], char tabF2 [][]) {
+	int res =0;
+	int n = tab.length;
+	int m = tab[0].length;
+	if(tab[i][j] != -1) {
+		return tab[i][j];
+	}
+	//TODO: que se passe t'il si des fichiers sont vide?
+	if (i==n && j==m) {
+		//return le cout de la dernière substitution
+		return c(n,m); 
+	}
+	if(i==n) {
+		for (int k = j; k< m;k++) {
+			res+=10+strlen(tabF2[k]);
+		}
+		return res;
+	}
+	
+	if (j==m) {
+		if (i==n-1) {
+			return 10;
+		} else {
+			return 15;
+		}
+	}
+	/*cas général*/
+	res = B(i,j-1) + 10 + strlen(tabF2[j]); //cas ajout
+	int aux = B(i-1,j-1) + c(i,j); //cas sub
+	if (aux < res) {
+		res = aux;
+	}
+	aux = B(i-1,j) +10; //cas dest unique
+	if (aux < res) {
+		res = aux;
+	}
+	//k?????
+	k
+	aux = B(i-k,j) +15; //cas dest mult
+	if (aux < res) {
+		res = aux;
+	}
+}
 /*TODO: 
  * Parser le fichier1 pour en récuperer toute les données (sous quelle forme? tab?)
  * Faire de même avec le fichier 2
@@ -73,5 +114,6 @@ void getNbLigne(int* nbLigne,int* longest, char* nomFichier) {
  * On cerche le patch de cout minimal avec les algos vus en cours:
  * On peut commencer par chercher le cout de ce patch puis ajouter les éléments 
  * pour dégager les différentes instructions que l'on recherche
+ * - implementer c (cout de substitution)
  */
 
