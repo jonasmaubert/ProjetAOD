@@ -11,9 +11,9 @@
 
 /*Prototypes de fonction*/
 void getNbLigne(int* nbLigne, int* longest, char* nomFichier);
-
-
- //gcc -Wall -Wextra -std=c99 src/computePachOpt.c -o computePatchOpt
+int B(int i, int j, int **tab,int n, int m, char* tabF1[], char* tabF2 [], char (*inst)[10000]);
+int c(char *ligne1, char *ligne2 );
+ //gcc -g -Wall -Wextra -std=c99 src/computePachOpt.c -o computePatchOpt
  
  /*
  *Fonction qui créé la patch de coup minimal entre deux fichiers
@@ -23,41 +23,62 @@ void getNbLigne(int* nbLigne, int* longest, char* nomFichier);
  */
 int main(int argc, char** argv)
 {
-	if (argc != 4 ) {
-		printf("./bin fichiers1 fichiers2 patch")
+	if (argc != 3 ) {
+		printf("./bin fichier1 fichier2");
+		return 0;
 	}
 	int nbLigne1;
 	int nbLigne2;
 	int taillePlusLongueLigne = 0;
 	getNbLigne(&nbLigne1, &taillePlusLongueLigne, argv[1]);
-
 	getNbLigne(&nbLigne2, &taillePlusLongueLigne, argv[2]);
+	//taillePlusLongueLigne++; ??
 	FILE* fichier1 = fopen(argv[1],"r");
 	FILE* fichier2 = fopen(argv[2],"r");
 	/*Recupération des données*/
-	char tab1[nbLigne1][taillePlusLongueLigne];
-	char tab2[nbLigne2][taillePlusLongueLigne];
-	for (int i=0; i<nbLigne1; i++) {
+	/*char tab1[nbLigne1][taillePlusLongueLigne];
+	char tab2[nbLigne2][taillePlusLongueLigne];*/
+	char** tab1;
+	char** tab2;
+	tab1 = malloc(nbLigne1*sizeof(char*));
+	tab2 = malloc(nbLigne2*sizeof(char*));
+	for (int i =0; i<nbLigne1 ; i++ ) {
+		tab1[i] = malloc(taillePlusLongueLigne*sizeof(char));
 		fgets(tab1[i],taillePlusLongueLigne, fichier1);
+
 	}
-	for (int j=0; j<nbLigne2; j++) {
+	for (int j =0; j< nbLigne2; j++) {
+		tab2[j] = malloc(taillePlusLongueLigne*sizeof(char));
 		fgets(tab2[j],taillePlusLongueLigne, fichier2);
 	}
 	fclose(fichier1);
 	fclose(fichier2);
 	/*Recherche du patch de cout minimal*/
 	
-	int tabBellMan[nbLigne1 + 1][nbLigne2 + 1];
+	int** tabBellMan;//[nbLigne1 + 1][nbLigne2 + 1];
+	tabBellMan = malloc((nbLigne1+1)*sizeof(int*));
+	for(int i = 0; i<=nbLigne1;i++) {
+		tabBellMan[i] = malloc((nbLigne2+1)*sizeof(int));
+	}
 	for (int k = 0;k<=nbLigne1; k++ ) {
 		for (int l = 0; l<= nbLigne2; l++) {
 			tabBellMan[k][l] = -1; //cette valeur correspond a une case non traité
 		}
 	}
 	//Cette chaine de caractère contient en réalité la suite des instructions a effectuer dans le patch
-	char *instructions = "";
-	int res = B(1, 1, &tabBellMan, tab1, tab2, instructions);
-	//On peut maintenant écrire le patch (argv[3])
-	writePatch(instructions,argv[3]);
+	char instructions[10000] ;
+	int res = B(1, 1, tabBellMan,nbLigne1-1, nbLigne2-1, tab1, tab2, &instructions);
+	//writePatch(instructions);
+	printf(instructions);
+	printf("LE MIN VAUT: %d", res);
+	for (int i=0; i<nbLigne1; i++) {
+		free(tab1[i]);
+	}
+	for (int j=0; j<nbLigne2; j++) {
+		free(tab2[j]);
+	}
+	free(tab1);
+	free(tab2);
 	return(EXIT_SUCCESS);
 }
 
@@ -66,7 +87,7 @@ void getNbLigne(int* nbLigne,int* longest, char* nomFichier) {
 	*nbLigne=0;
 	char tmp[1000];
 	while (fgets(tmp,1000,fichier) != NULL) {
-		if (strlen(tmp) > *longest) {
+		if ((int) strlen(tmp) > *longest) {
 			*longest = strlen(tmp);
 		}
 		(*nbLigne)++;
@@ -75,11 +96,13 @@ void getNbLigne(int* nbLigne,int* longest, char* nomFichier) {
 	fclose(fichier);
 }
 
-int B(int i, int j, int* tab[][], char tabF1[][], char tabF2 [][], char * inst) {
+int B(int i, int j, int **tab,int n, int m, char* tabF1[], char* tabF2 [], char (*inst)[10000]) {
 	int res =0;
-	int n = tab.length - 1;
-	int m = tab[0].length - 1;
-	char * instTmp;
+	//int n = sizeof(tab) - 1;
+	//int m = sizeof(tab[0]) - 1;
+	char instTmp[2*sizeof(tabF1[0])];
+	char * test="";
+	//char* tmp;
 	if(tab[i][j] != -1) {
 		return tab[i][j];
 	}
@@ -88,18 +111,19 @@ int B(int i, int j, int* tab[][], char tabF1[][], char tabF2 [][], char * inst) 
 	if (i==n && j==m) {
 		//return le cout de la dernière substitution
 		sprintf(instTmp,"= %d\n",i);
-		strcat(instTmp, tabF2[j]);
-		strcat(instTmp, "\n");
-		strcat(inst,instTmp); // inst = inst +"= i\n Fichiers2(j)\n"
+		test = strcat(instTmp, tabF2[j]);
+		test = strcat(instTmp, "\n");
+		test = strcat(*inst,instTmp); // inst = inst +"= i\n Fichiers2(j)\n"
+		tab[i][j] = c(tabF1[i],tabF2[j]);
 		return c(tabF1[i],tabF2[j]);
 	}
 	if(i==n + 1) {
 		//On ajoute les lignes manquantes après i.
 		for (int k = m; k >= j;k--) {
 			sprintf(instTmp,"+ %d\n",n);
-			strcat(instTmp, tabF2[k]);
-			strcat(instTmp, "\n");
-			strcat(inst,instTmp); // inst = inst + "+ n\n Fichiers2(k)\n"
+			test = strcat(instTmp, tabF2[k]);
+			test = strcat(instTmp, "\n");
+			test = strcat(*inst,instTmp); // inst = inst + "+ n\n Fichiers2(k)\n"
 			res+=10+strlen(tabF2[k]);
 		}
 
@@ -108,29 +132,31 @@ int B(int i, int j, int* tab[][], char tabF1[][], char tabF2 [][], char * inst) 
 	if (j== m+1) {
 		//On détruit les lignes en trop
 		if (i==n-1) {
-			strcat(inst, "d %d\n", n);
+			sprintf(instTmp, "d %d\n", n);
+			test = strcat(*inst,instTmp);
 			return 10;
 		} else {
-			strcat(inst, "D %d %d\n",i , (n-i));
+			sprintf(instTmp, "D %d %d\n",i , (n-i));
+			test = strcat(*inst,instTmp);
 			return 15;
 		}
 	}
 	/*cas général*/
 	//ajout ATTENTION L'AJOUT SE FAIT EN I-1 (pour se mettre "avant" la ligne i)
-	res = B(i,j+1, tabF1, tabF2, inst) + 10 + strlen(tabF2[j]); 
+	res = B(i,j+1, tab, n, m,tabF1, tabF2, inst) + 10 + strlen(tabF2[j]); 
 	sprintf(instTmp,"+ %d\n",i-1);
-	strcat(instTmp, tabF2[j]);
-	strcat(instTmp, "\n");
+	test = strcat(instTmp, tabF2[j]);
+	test = strcat(instTmp, "\n");
 	 // substitution
-	int aux = B(i+1,j+1, tabF1, tabF2, inst) + c(tabF1[i],tabF2[j]);
+	int aux = B(i+1,j+1, tab, n, m, tabF1, tabF2, inst) + c(tabF1[i],tabF2[j]);
 	if (aux < res) {
 		sprintf(instTmp,"= %d\n",i);
-		strcat(instTmp, tabF2[j]);
-		strcat(instTmp, "\n");
+		test = strcat(instTmp, tabF2[j]);
+		test = strcat(instTmp, "\n");
 		res = aux;
 	}
 	// destruction unique
-	aux = B(i+1,j, tabF1, tabF2, inst) +10; 
+	aux = B(i+1,j, tab, n, m, tabF1, tabF2, inst) +10; 
 	if (aux < res) {
 		sprintf(instTmp, "d %d\n", i);
 		res = aux;
@@ -138,14 +164,17 @@ int B(int i, int j, int* tab[][], char tabF1[][], char tabF2 [][], char * inst) 
 	//destruction multiple,on doit ester pour chaque valeur de k possible
 	int k;
 	for (int l = 2; l <= n - i; k++ ) {
-		aux = B(i + l,j, tabF1, tabF2, inst) +15; 
-		if (auxDestMult < res) {
+		aux = B(i + l,j, tab, n, m, tabF1, tabF2, inst) +15; 
+		if (aux < res) {
 			sprintf(instTmp,"D %d %d\n", i, i+l);
 			res = aux;
 		}
 	}
 	tab[i][j] = res;
-	strcat(inst,instTmp);
+	/*strcpy(tmp,instTmp);
+	strcat(instTmp,*inst);
+	strcpy(*inst,instTmp);*/
+	test = strcat(*inst, instTmp);
 	return res;
 }
 
@@ -158,7 +187,7 @@ int c(char *ligne1, char *ligne2 ) {
 		return 10 + strlen(ligne2); //cout d'une substitution
 	}
 }
-
+//Ne sert pas pour l'instant
 void writePatch(char *inst, char* nomFichier) {
 	FILE* patch = fopen(nomFichier,"w");
 	fprintf(patch, inst);
