@@ -67,8 +67,8 @@ int main(int argc, char** argv)
 	}
 	//Cette chaine de caractère contient en réalité la suite des instructions a effectuer dans le patch
 	char instructions[10000] ;
-	int res = B(1, 1, tabBellMan,nbLigne1-1, nbLigne2-1, tab1, tab2, &instructions);
-	//writePatch(instructions);
+	int res = B(1, 1, tabBellMan,nbLigne1, nbLigne2, tab1, tab2, &instructions);
+	//On ecrit le patch sur la sortie
 	printf(instructions);
 	printf("LE MIN VAUT: %d", res);
 	for (int i=0; i<nbLigne1; i++) {
@@ -98,33 +98,35 @@ void getNbLigne(int* nbLigne,int* longest, char* nomFichier) {
 
 int B(int i, int j, int **tab,int n, int m, char* tabF1[], char* tabF2 [], char (*inst)[10000]) {
 	int res =0;
+	//ATTENTION : i et j correspondent vraiment à la leur num de ligne mais leur position dans le tableau est (i-1) et (j-1) 
+	//(n et m correspondent aussi vraiment au nb de ligne) et on va chercher dans tab[i-1][j-1] si la valeur est différente de -1 sinon la valeur 0 ne servirait a rien
 	//int n = sizeof(tab) - 1;
 	//int m = sizeof(tab[0]) - 1;
 	char instTmp[2*sizeof(tabF1[0])];
 	char * test="";
 	//char* tmp;
-	if(tab[i][j] != -1) {
-		return tab[i][j];
+	if(tab[i-1][j-1] != -1) {
+		return tab[i-1][j-1];
 	}
-	//TODO: que se passe t'il si des fichiers sont vide?
+	/* conditions d'arret*/
 	//premier if pas vraiment obligatoire nan? a voir...
 	if (i==n && j==m) {
 		//return le cout de la dernière substitution
 		sprintf(instTmp,"= %d\n",i);
-		test = strcat(instTmp, tabF2[j]);
+		test = strcat(instTmp, tabF2[j-1]);
 		test = strcat(instTmp, "\n");
 		test = strcat(*inst,instTmp); // inst = inst +"= i\n Fichiers2(j)\n"
-		tab[i][j] = c(tabF1[i],tabF2[j]);
-		return c(tabF1[i],tabF2[j]);
+		tab[i-1][j-1] = c(tabF1[i-1],tabF2[j-1]);
+		return c(tabF1[i-1],tabF2[j-1]);
 	}
 	if(i==n + 1) {
 		//On ajoute les lignes manquantes après i.
-		for (int k = m; k >= j;k--) {
+		for (int k = m; k > j;k--) {
 			sprintf(instTmp,"+ %d\n",n);
-			test = strcat(instTmp, tabF2[k]);
+			test = strcat(instTmp, tabF2[k-1]);
 			test = strcat(instTmp, "\n");
 			test = strcat(*inst,instTmp); // inst = inst + "+ n\n Fichiers2(k)\n"
-			res+=10+strlen(tabF2[k]);
+			res+=10+strlen(tabF2[k-1]);
 		}
 
 		return res;
@@ -143,41 +145,47 @@ int B(int i, int j, int **tab,int n, int m, char* tabF1[], char* tabF2 [], char 
 	}
 	/*cas général*/
 	//ajout ATTENTION L'AJOUT SE FAIT EN I-1 (pour se mettre "avant" la ligne i)
-	res = B(i,j+1, tab, n, m,tabF1, tabF2, inst) + 10 + strlen(tabF2[j]); 
+	char instNext[10000]="";
+	res = B(i,j+1, tab, n, m,tabF1, tabF2, &instNext) + 10 + strlen(tabF2[j-1]);
 	sprintf(instTmp,"+ %d\n",i-1);
-	test = strcat(instTmp, tabF2[j]);
+	test = strcat(instTmp, tabF2[j-1]);
 	test = strcat(instTmp, "\n");
+	test = strcat(instTmp,instNext);
 	 // substitution
-	int aux = B(i+1,j+1, tab, n, m, tabF1, tabF2, inst) + c(tabF1[i],tabF2[j]);
-	if (aux < res) {
+	memset(instNext,0,sizeof(instNext));
+	int aux = B(i+1,j+1, tab, n, m, tabF1, tabF2, &instNext) + c(tabF1[i-1],tabF2[j-1]);
+	if (aux < res ) {
 		sprintf(instTmp,"= %d\n",i);
-		test = strcat(instTmp, tabF2[j]);
+		test = strcat(instTmp, tabF2[j-1]);
 		test = strcat(instTmp, "\n");
+		test = strcat(instTmp,instNext);
 		res = aux;
 	}
 	// destruction unique
-	aux = B(i+1,j, tab, n, m, tabF1, tabF2, inst) +10; 
+	memset(instNext,0,sizeof(instNext));
+	aux = B(i+1,j, tab, n, m, tabF1, tabF2, &instNext) +10; 
 	if (aux < res) {
 		sprintf(instTmp, "d %d\n", i);
+		test = strcat(instTmp,instNext);
 		res = aux;
 	}
 	//destruction multiple,on doit ester pour chaque valeur de k possible
-	int k;
-	for (int l = 2; l <= n - i; k++ ) {
-		aux = B(i + l,j, tab, n, m, tabF1, tabF2, inst) +15; 
+	memset(instNext,0,sizeof(instNext));
+	for (int l = 2; l <= n - i; l++ ) {
+		aux = B(i + l,j, tab, n, m, tabF1, tabF2, &instNext) +15; 
 		if (aux < res) {
 			sprintf(instTmp,"D %d %d\n", i, i+l);
+			test = strcat(instTmp,instNext);
 			res = aux;
 		}
 	}
-	tab[i][j] = res;
+	tab[i-1][j-1] = res;
 	/*strcpy(tmp,instTmp);
 	strcat(instTmp,*inst);
 	strcpy(*inst,instTmp);*/
 	test = strcat(*inst, instTmp);
 	return res;
 }
-
 
 int c(char *ligne1, char *ligne2 ) {
 	if (ligne1 == ligne2) {
@@ -187,17 +195,8 @@ int c(char *ligne1, char *ligne2 ) {
 		return 10 + strlen(ligne2); //cout d'une substitution
 	}
 }
-//Ne sert pas pour l'instant
-void writePatch(char *inst, char* nomFichier) {
-	FILE* patch = fopen(nomFichier,"w");
-	fprintf(patch, inst);
-	fclose(patch);
-}
+
 /*TODO: 
- * - Gerer la destruction multiple : DONE
- * - Ajouter la génération des lignes de commandes dans le patch, 
- *	pour cela on va remplir un char* sous la forme suivante: "instr1 \n instr2 \n ..." : DONE
- * - generer le patch :DONE
- * - Maintenant c'est phase de débug de porc <3<3<3 (doit y avoir des fautes de merde de partout)
+ * PRB de string
  */
 
