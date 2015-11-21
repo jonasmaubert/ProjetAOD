@@ -163,6 +163,7 @@ int B(int i, int j, data **tab,int n, int m, char* tabF1[], char* tabF2 [], char
 	res = B(i,j+1, tab, n, m,tabF1, tabF2, instNext) + 10 + strlen(tabF2[j-1]);
 	sprintf(instTmp,"+ %d\n",i-1);
 	strcat(instTmp, tabF2[j-1]);
+	strcat(instTmp,"\n");
 	strcat(instTmp,*instNext);
 	
 	 // substitution
@@ -189,7 +190,7 @@ int B(int i, int j, data **tab,int n, int m, char* tabF1[], char* tabF2 [], char
 		res = aux;
 	}
 
-	//destruction multiple,on doit ester pour chaque valeur de k possible
+	//destruction multiple,on doit tester pour chaque valeur de k possible
 	strcpy(*instNext,"");
 	for (int l = 2; l <= n - i; l++ ) {
 		aux = B(i + l,j, tab, n, m, tabF1, tabF2, instNext) +15;
@@ -200,6 +201,8 @@ int B(int i, int j, data **tab,int n, int m, char* tabF1[], char* tabF2 [], char
 		}
 	}
 	
+	//On peut direct faire 	strcpy(tab[i-1][j-1].commande, instTmp); non ?
+
 	strcpy(*inst, instTmp);
 	strcpy(tab[i-1][j-1].commande, *inst);
 	tab[i-1][j-1].valeur = res;
