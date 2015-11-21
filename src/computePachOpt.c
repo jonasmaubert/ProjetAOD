@@ -186,7 +186,7 @@ int B(int i, int j, data **tab,int n, int m, char* tabF1[], char* tabF2 [], char
 		res = aux;
 	}
 
-	//destruction multiple,on doit ester pour chaque valeur de k possible
+	//destruction multiple,on doit tester pour chaque valeur de k possible
 	strcpy(*instNext,"");
 	for (int l = 2; l <= n - i; l++ ) {
 		aux = B(i + l,j, tab, n, m, tabF1, tabF2, instNext) +15;
