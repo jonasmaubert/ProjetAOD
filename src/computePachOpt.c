@@ -172,8 +172,11 @@ int B(int i, int j, data **tab,int n, int m, char* tabF1[], char* tabF2 [], char
 		if (c(tabF1[i-1],tabF2[j-1]) != 0) {
 			sprintf(instTmp,"= %d\n",i);
 			strcat(instTmp, tabF2[j-1]);
-			strcat(instTmp,*instNext);
 		}
+		else {
+			strcpy(instTmp,"");
+		}
+		strcat(instTmp,*instNext);
 		res = aux;
 	}
 
