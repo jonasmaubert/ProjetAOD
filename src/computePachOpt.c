@@ -13,7 +13,7 @@
 /*Structures*/
 struct data {
 	int valeur;
-	char commande[10000];
+	char commande[1000];
 };
 typedef struct data data;
 
@@ -108,7 +108,8 @@ void getNbLigne(int* nbLigne,int* longest, char* nomFichier) {
 
 int B(int i, int j, data **tab,int n, int m, char* tabF1[], char* tabF2 [], char (*inst)[10000]) {
 	int res =0;
-	char *instTmp=malloc(1000*sizeof(char));
+	//char *instTmp=malloc(1000*sizeof(char));
+	char instTmp[10000]={0};
 	if(tab[i-1][j-1].valeur != -1) {
 		strcpy(*inst, tab[i-1][j-1].commande);
 		return tab[i-1][j-1].valeur;
@@ -207,7 +208,6 @@ int B(int i, int j, data **tab,int n, int m, char* tabF1[], char* tabF2 [], char
 	strcpy(tab[i-1][j-1].commande, *inst);
 	tab[i-1][j-1].valeur = res;
 	free(instNext);
-	free(instTmp);
 	return res;
 }
 
