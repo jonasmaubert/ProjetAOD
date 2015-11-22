@@ -48,14 +48,25 @@ int main(int argc, char** argv)
 	char** tab2;
 	tab1 = malloc(nbLigne1*sizeof(char*));
 	tab2 = malloc(nbLigne2*sizeof(char*));
+	char* RetourLigne;
 	for (int i =0; i<nbLigne1 ; i++ ) {
 		tab1[i] = malloc(taillePlusLongueLigne*sizeof(char));
 		fgets(tab1[i],taillePlusLongueLigne, fichier1);
-
+		RetourLigne = strstr(tab1[i], "\n");
+		if (RetourLigne == NULL)
+		  {
+		    strcat(tab1[i], "\n");
+		  }
 	}
+	
 	for (int j =0; j< nbLigne2; j++) {
 		tab2[j] = malloc(taillePlusLongueLigne*sizeof(char));
 		fgets(tab2[j],taillePlusLongueLigne, fichier2);
+		RetourLigne = strstr(tab2[j], "\n");
+		if (RetourLigne == NULL)
+		  {
+		    strcat(tab2[j], "\n");
+		  }
 	}
 	fclose(fichier1);
 	fclose(fichier2);
@@ -76,6 +87,7 @@ int main(int argc, char** argv)
 	char instructions[10000];
 	int res = B(1, 1, tabBellMan,nbLigne1, nbLigne2, tab1, tab2, &instructions);
 	//On ecrit le patch sur la sortie
+	//peut etre write serait mieux : write(1,instructions); 1= sortie standar, 2= sortie d erreur.
 	printf(instructions);
 	for (int i=0; i<nbLigne1; i++) {
 		free(tab1[i]);
@@ -164,7 +176,6 @@ int B(int i, int j, data **tab,int n, int m, char* tabF1[], char* tabF2 [], char
 	res = B(i,j+1, tab, n, m,tabF1, tabF2, instNext) + 10 + strlen(tabF2[j-1]);
 	sprintf(instTmp,"+ %d\n",i-1);
 	strcat(instTmp, tabF2[j-1]);
-	strcat(instTmp,"\n");
 	strcat(instTmp,*instNext);
 	
 	 // substitution
