@@ -12,7 +12,7 @@
 /*Structures*/
 struct data {
 	int valeur;
-	char commande[100];
+	char commande[200];
 	int nextI;
 	int nextJ;
 };
@@ -108,8 +108,8 @@ void getNbLigne(int* nbLigne, int* longest, char* nomFichier)
 {
 	FILE* fichier = fopen(nomFichier, "r");
 	*nbLigne = 0;
-	char tmp[100];
-	while (fgets(tmp, 100, fichier) != NULL) {
+	char tmp[200];
+	while (fgets(tmp, 200, fichier) != NULL) {
 		if ((int) strlen(tmp) > *longest) {
 			*longest = strlen(tmp);
 		}
@@ -124,25 +124,25 @@ int B(data **tab, int n, int m, char* tabF1[], char* tabF2 [])
 	int res = 0;
 	int iSuivant = -1;
 	int jSuivant = -1;
-	char instTmp[100] = {0};
+	char instTmp[200] = {0};
 	/*Condition d'arret */
 	tab[n][m].nextI = -1;
 	tab[n][m].nextJ = -1;
 	tab[n][m].valeur = 0;
 	/*Cas particuliers */
-	res = c(tabF1[n - 1], tabF2[m - 1]);//tabF1[n - 1], tabF2[m - 1]);
+	res = c(tabF1[n - 1], tabF2[m - 1]);
 	tab[n - 1][m - 1].valeur = res;
-	//if (res != 0) {
+	if (res != 0) {
 		sprintf(instTmp, "= %d\n", n);
-		strcat(instTmp, tabF2[m - 1]); //tabF2[m - 1]);
+		strcat(instTmp, tabF2[m - 1]);
 		strcpy(tab[n - 1][m - 1].commande, instTmp);
-	//}
+	}
 	/*cas (n+1,)*/
 	/*PRB ce cas là conduit a créer des lignes trop grandes! better traiter sa commande à la fin*/
 	for (int j = 0; j < m; j++) {
 		for (int k = j; k < m; k++) {
 
-			res += 10 + strlen(tabF2[k]);//tabF2[k]);
+			res += 10 + strlen(tabF2[k]);
 		}
 		tab[n][j].valeur = res;
 	}
@@ -213,7 +213,6 @@ int B(data **tab, int n, int m, char* tabF1[], char* tabF2 [])
 		if(cour.nextI == n+1) {
 			for(int j = cour.nextJ; j < m;j++) {
 			printf( "+ %d\n", n);
-			//getLine(&lineF2, f2, j+1, lenghtMax);
 			printf(tabF2[j]);
 			}
 			//On a fini
