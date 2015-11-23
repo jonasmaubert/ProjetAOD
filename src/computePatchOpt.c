@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 /*Structures*/
 struct data {
@@ -44,36 +45,34 @@ int main(int argc, char** argv)
 	getNbLigne(&nbLigne2, &taillePlusLongueLigne, argv[2]);
 	taillePlusLongueLigne++;
 	/* parser le retour*/
-	FILE* fichier1 = fopen(argv[1],"r");
-	FILE* fichier2 = fopen(argv[2],"r");
+	FILE* fichier1 = fopen(argv[1], "r");
+	FILE* fichier2 = fopen(argv[2], "r");
 	char** tab1;
 	char** tab2;
-	tab1 = malloc(nbLigne1*sizeof(char*));
-	tab2 = malloc(nbLigne2*sizeof(char*));
+	tab1 = malloc(nbLigne1 * sizeof(char*));
+	tab2 = malloc(nbLigne2 * sizeof(char*));
 	char* RetourLigne;
-	for (int i =0; i<nbLigne1 ; i++ ) {
-		tab1[i] = malloc((taillePlusLongueLigne)*sizeof(char));
-		fgets(tab1[i],taillePlusLongueLigne, fichier1);
+	for (int i = 0; i < nbLigne1; i++) {
+		tab1[i] = malloc((taillePlusLongueLigne) * sizeof(char));
+		fgets(tab1[i], taillePlusLongueLigne, fichier1);
 		RetourLigne = strstr(tab1[i], "\n");
-		if (RetourLigne == NULL)
-		  {
-		    strcat(tab1[i], "\n");
-		  }
+		if (RetourLigne == NULL) {
+			strcat(tab1[i], "\n");
+		}
 	}
-	
-	for (int j =0; j< nbLigne2; j++) {
-		tab2[j] = malloc((taillePlusLongueLigne)*sizeof(char));
-		fgets(tab2[j],taillePlusLongueLigne, fichier2);
+
+	for (int j = 0; j < nbLigne2; j++) {
+		tab2[j] = malloc((taillePlusLongueLigne) * sizeof(char));
+		fgets(tab2[j], taillePlusLongueLigne, fichier2);
 		RetourLigne = strstr(tab2[j], "\n");
-		if (RetourLigne == NULL)
-		  {
-		    strcat(tab2[j], "\n");
-		  }
+		if (RetourLigne == NULL) {
+			strcat(tab2[j], "\n");
+		}
 	}
 	fclose(fichier1);
 	fclose(fichier2);
 	/*Recherche du patch de cout minimal*/
-	data** tabBellMan; 
+	data** tabBellMan;
 	tabBellMan = malloc((nbLigne1 + 1) * sizeof(data));
 	for (int i = 0; i <= nbLigne1; i++) {
 		tabBellMan[i] = malloc((nbLigne2 + 1) * sizeof(data));
@@ -93,16 +92,17 @@ int main(int argc, char** argv)
 		free(tabBellMan[k]);
 	}
 	free(tabBellMan);
-	for (int i=0; i<nbLigne1; i++) {
+	for (int i = 0; i < nbLigne1; i++) {
 		free(tab1[i]);
 	}
-	for (int j=0; j<nbLigne2; j++) {
+	for (int j = 0; j < nbLigne2; j++) {
 		free(tab2[j]);
 	}
 	free(tab1);
 	free(tab2);
 	return res;
 }
+
 
 void getNbLigne(int* nbLigne, int* longest, char* nomFichier)
 {
@@ -165,11 +165,11 @@ int B(data **tab, int n, int m, char* tabF1[], char* tabF2 [])
 			//ajout
 			res = tab[i - 1][j].valeur + 10 + strlen(tabF2[j - 1]);
 			sprintf(instTmp, "+ %d\n", i - 1);
-			strcat(instTmp,tabF2[j - 1]);
-			iSuivant = i-1;
+			strcat(instTmp, tabF2[j - 1]);
+			iSuivant = i - 1;
 			jSuivant = j;
 			// substitution
-			int valC = c(tabF1[i-1], tabF2[j-1]);
+			int valC = c(tabF1[i - 1], tabF2[j - 1]);
 			int aux = tab[i][j].valeur + valC;
 			if (aux <= res) {
 				if (valC != 0) {
@@ -182,21 +182,36 @@ int B(data **tab, int n, int m, char* tabF1[], char* tabF2 [])
 				jSuivant = j;
 				res = aux;
 			}
-			// destruction unique
-			aux = tab[i][j - 1].valeur + 10;
-			if (aux < res) {
-				sprintf(instTmp, "d %d\n", i);
-				iSuivant = i;
-				jSuivant = j-1;
-				res = aux;
-			}
-			//destruction multiple,on doit tester pour chaque valeur de k possible
-			for (int l = 2; l <= n - i; l++) {
-				aux = tab[i + l - 1][j - 1].valeur + 15;
+			if (tab[i][j - 1].commande[0] == 'd') {
+				//Debut de destruction multiple
+				aux = tab[i][j - 1].valeur + 5; 
 				if (aux < res) {
-					sprintf(instTmp, "D %d %d\n", i, l);
-					iSuivant = i+l-1;
-					jSuivant = j-1;
+					sprintf(instTmp, "D %d 2\n", i);//elle commence à la ligne actuelle et va jusqu'a la ligne de d
+					iSuivant = i+1; //On saute la case de destruction simple pour les isntructions
+					jSuivant = j - 1;
+					res = aux;
+				}
+			} else if (tab[i][j - 1].commande[0] == 'D') {
+				//continuité de destruction multiple
+				aux = tab[i][j - 1].valeur;
+				if (aux < res) {
+					char dest;
+					int tmp;
+					int nbD;
+					//on recupère le nombre de destruction multiple
+					sscanf(tab[i][j-1].commande,"%c %d %d",&dest, &tmp, &nbD);
+					sprintf(instTmp, "D %d %d\n", i, nbD+1);//elle commence à la ligne actuelle et va jusqu'a la ligne de d
+					iSuivant = i+nbD;
+					jSuivant = j - 1;
+					res = aux;
+				}
+			} else {
+				//Destruction simple
+				aux = tab[i][j - 1].valeur + 10;
+				if (aux < res) {
+					sprintf(instTmp, "d %d\n", i);
+					iSuivant = i;
+					jSuivant = j - 1;
 					res = aux;
 				}
 			}
@@ -209,16 +224,18 @@ int B(data **tab, int n, int m, char* tabF1[], char* tabF2 [])
 	/*On print toute les instructions ici*/
 	data cour = tab[0][0];
 	do {
-		printf(cour.commande);
-		if(cour.nextI == n+1) {
-			for(int j = cour.nextJ; j < m;j++) {
-			printf( "+ %d\n", n);
-			printf(tabF2[j]);
+		write(1, cour.commande, strlen(cour.commande));
+		//printf(cour.commande);
+		if (cour.nextI == n + 1) {
+			for (int j = cour.nextJ; j < m; j++) {
+				printf("+ %d\n", n);
+				write(1, tabF2[j], strlen(tabF2[j]));
+				//printf(tabF2[j]);
 			}
 			//On a fini
 			return tab[0][0].valeur;
 		} else {
-		cour = tab[cour.nextI][cour.nextJ];
+			cour = tab[cour.nextI][cour.nextJ];
 		}
 	} while (cour.nextI != -1 && cour.nextJ != -1);
 	return tab[0][0].valeur;
