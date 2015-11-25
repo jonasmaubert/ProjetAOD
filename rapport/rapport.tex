@@ -17,25 +17,20 @@
 
 \title{Rapport de TP 4MMAOD : Génération de patch optimal}
 \author{
-NOM Prénom étudiant$_1$ (groupe étudiant$_1$) 
-\\ NOM Prénom étudiant$_2$ (groupe étudiant$_2$) 
+Kamowski Nicolas  (groupe IF$_1$) 
+Maubert Jonas  (groupe IF$_1$) 
 }
 
 \begin{document}
 
 \maketitle
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\paragraph{\em Préambule}
-{\em \begin{itemize} 
-   \item Compléter ce patron de rapport en supprimant toutes les phrases en italique\,: elles ne doivent pas apparaître dans le rapport pdf.
-   \item Il sera attribué {\bf 1 point} pour la qualité globale du rapport\,: présentation, concision et clarté de l'argumentation.
-\end{itemize}
-}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Principe de notre  programme (1 point)}
-{\em Mettre ici une explication brève du principe de votre programme en  précisant la méthode implantée (récursive, itérative) et les
+{\em Nous avons implémenté une méthode itérative de Bellman.
+Nous avons choisis comme ordre de mettre en premier les destructions simples, puis les destructions multiples, en 3ème les ajouts et en derniers les substitutions. 
+ Mettre ici une explication brève du principe de votre programme en  précisant la méthode implantée (récursive, itérative) et les
 choix effectués (notamment pour l'ordonnancement des instructions).
 } 
 
@@ -69,22 +64,26 @@ et $c_1$ et $c_2$ de caractères des deux fichiers en entrée.
   \subsection{Conditions expérimentaless}
      {\em Décrire les conditions permettant la reproductibilité des mesures: on demande la description
       de la machine et la méthode utilisée pour mesurer le temps.
+      Nous avons effectué les mesures sur 
+      Pour calculer le temps nous avons utilisé la commande time, et pris le team réel.
      }
 
     \subsubsection{Description synthétique de la machine\,:} 
       {\em indiquer ici le  processeur et sa fréquence, la mémoire, le système d'exploitation. 
        Préciser aussi si la machine était monopolisée pour un test, ou notamment si 
        d'autres processus ou utilisateurs étaient en cours d'exécution. 
+       Situation : ordinateur de la salle E103.
+       Tests effectués avec firefox en cours d'éxecution pour noter les résultats.
       } 
 
     \subsubsection{Méthode utilisée pour les mesures de temps\,: } 
-      {\em préciser ici  comment les mesures de temps ont été effectuées (fonction appelée) et l'unité de temps; en particulier, 
-       préciser comment les 5 exécutions pour chaque test ont été faites (par exemple si le même test est fait 5 fois de suite, ou si les tests sont alternés entre
-       les mesures, ou exécutés en concurrence etc). 
+      {\em 
+        Nous avons utilisé la commande ``time'' pour mesurer le temps de notre fonction. Les temps donnés sont en secondes.
+Pour la moyenne, le même test est fait 5 fois de suite.
       }
 
   \subsection{Mesures expérimentales}
-    {\em Compléter le tableau suivant par les temps d'exécution mesurés pour chacun des 6 benchmarks imposés
+    {\em Le tableau suivant contient les temps d'exécution mesurés pour chacun des 6 benchmarks imposés
               (temps minimum, maximum et moyen sur 5 exécutions)
     }
 
@@ -97,17 +96,17 @@ et $c_1$ et $c_2$ de caractères des deux fichiers en entrée.
             & du patch     & min       & max     & moyen \\
           \hline
           \hline
-            benchmark1 &      &     &     &     \\
+            benchmark1 &2540&   0,122   &0,133     &0,125     \\
           \hline
-            benchmark2 &      &     &     &     \\
+            benchmark2 &3120&0,429      &0,436     &0,431     \\
           \hline
-            benchmark3 &      &     &     &     \\
+            benchmark3 &809&0,871     &0,913     &0,884     \\
           \hline
-            benchmark4 &      &     &     &     \\
+            benchmark4 &1708&1,247     &1,275     &1,265     \\
           \hline
-            benchmark5 &      &     &     &     \\
+            benchmark5 &7553&2,337     &2,465     &2,387     \\
           \hline
-            benchmark6 &      &     &     &     \\
+            benchmark6 &37027&9,334     &9,440     &9,373     \\
           \hline
           \hline
         \end{tabular}

@@ -1,3 +1,4 @@
+
 /* 
  * File:   computePachOpt.c
  * Author: Nicolas KAMOWSKI Jonas MAUBERT
@@ -234,4 +235,3 @@ int c(char *ligne1, char *ligne2 ) {
 /*TODO: 
  * -continuer les tests
  */
-
