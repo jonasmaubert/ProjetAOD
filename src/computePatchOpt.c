@@ -1,8 +1,10 @@
 /* 
- * File:   computePachOpt.c
- * Author: Nicolas KAMOWSKI Jonas MAUBERT
+ * \file    computePachOpt.c
+ * \author  Nicolas KAMOWSKI
+ * \author  Jonas MAUBERT
+ * \date    Created on 18 novembre 2015, 08:37
  *
- * Created on 18 novembre 2015, 08:37
+ * Implemente le programme de création de patch de cout minimum.
  */
 
 #include <stdio.h>
@@ -11,6 +13,14 @@
 #include <unistd.h>
 
 /*Structures*/
+/**
+ * \struct data
+ * Permet de stocker pour chaque couple de ligne du fichier 1 et 2 le 
+ * minimum du cout du patch à cette étape, le type de commande pour
+ * cette ligne et le nombre de destruction si la commande est une 
+ * destruction multiple. Cette structure contient aussi deux int
+ * représentant la localisations des prochaines instructions pour le patch.
+ */
 struct data {
 	int valeur;
 	char commande;
@@ -21,17 +31,41 @@ struct data {
 typedef struct data data;
 
 /*Prototypes de fonction*/
+/**
+ * Fonction permettant d'obtenir le nombre de ligne d'un fichier ainsi
+ * que la taille de la ligne la plus grande.
+ * @param nbLigne Nombre de ligne du fichier. 
+ * @param longuest Taille de la ligne la plus grande.
+ * @param nomFichier nom du fichier à parcourir.
+ */
 void getNbLigne(int* nbLigne, int* longest, char* nomFichier);
-int B(data **tab, int n, int m, char* tabF1[], char* tabF2 []);
-int c(char *ligne1, char *ligne2);
-int Max(int a, int b);
 
-//gcc -g -Wall -Wextra -std=c99 src/computePatchOpt.c -o computePatchOpt
+/**
+ * Fonction implémentant les équations de bellman pour trouver le patch de 
+ * cout minimal.
+ * @param tab Matrice de permettant de stocker les informations sur le patch.
+ * @param n Nombre de ligne du fichier 1.
+ * @param m Nombre de ligne du fichier 2.
+ * @param tabF1 tableau contenant toutes les lignes du fichiers 1.
+ * @param tabF2 tableau contenant toutes les lignes du fichiers 2.
+ * \return {cout du patch}
+ */
+int B(data **tab, int n, int m, char* tabF1[], char* tabF2 []);
+
+/**
+ * Fonction donnant le cout d'une substitution.
+ * @param ligne1 première chaine de caractère.
+ * @param ligne2 deuxième chaine de caractère.
+ * \return {0 si les lignes sont égales, 10 plus la taille de ligne2 sinon}
+ */
+int c(char *ligne1, char *ligne2);
+
 
 /*
  *Fonction qui créé la patch de coup minimal entre deux fichiers
  * @param fichier initial
  * @param fichier final
+ * \return {0 si le programme a fonctionné}
  */
 int main(int argc, char** argv)
 {
@@ -45,7 +79,7 @@ int main(int argc, char** argv)
 	getNbLigne(&nbLigne1, &taillePlusLongueLigne, argv[1]);
 	getNbLigne(&nbLigne2, &taillePlusLongueLigne, argv[2]);
 	taillePlusLongueLigne++;
-	/* parser le retour*/
+	/*parser*/
 	FILE* fichier1 = fopen(argv[1], "r");
 	FILE* fichier2 = fopen(argv[2], "r");
 	char** tab1;
@@ -88,8 +122,6 @@ int main(int argc, char** argv)
 	}
 	int res = B(tabBellMan, nbLigne1, nbLigne2, tab1, tab2);
 	fprintf(stderr, "Cout du patch : %d", res);
-	//On ecrit le patch sur la sortie
-	//peut etre write serait mieux : write(1,instructions); 1= sortie standar, 2= sortie d erreur.
 	for (int k = 0; k <= nbLigne1; k++) {
 		free(tabBellMan[k]);
 	}
@@ -102,7 +134,7 @@ int main(int argc, char** argv)
 	}
 	free(tab1);
 	free(tab2);
-	return res;
+	return 0;
 }
 
 void getNbLigne(int* nbLigne, int* longest, char* nomFichier)
@@ -137,7 +169,6 @@ int B(data **tab, int n, int m, char* tabF1[], char* tabF2 [])
 		tab[n - 1][m - 1].commande = '=';
 	}
 	/*cas (n+1,)*/
-	/*PRB ce cas là conduit a créer des lignes trop grandes! better traiter sa commande à la fin*/
 	for (int j = m - 1; j >= 0; j--) {
 		res = tab[n][j + 1].valeur + 10 + strlen(tabF2[j]);
 		tab[n][j].commande = '+';
@@ -166,13 +197,12 @@ int B(data **tab, int n, int m, char* tabF1[], char* tabF2 [])
 				res = tab[i][j - 1].valeur + 5;
 				tmp = 'D';
 				tab[i-1][j-1].nbDest = 2;
-				iSuivant = i + 1; //On saute la case de destruction simple pour les isntructions
+				iSuivant = i + 1; 
 			} else if (tab[i][j - 1].commande == 'D') {
 				//continuité de destruction multiple
 				res = tab[i][j - 1].valeur;
-				//on recupère le nombre de destruction multiple
 				tmp = 'D';
-				 tab[i-1][j-1].nbDest = tab[i][j-1].nbDest + 1;
+				tab[i-1][j-1].nbDest = tab[i][j-1].nbDest + 1;
 				iSuivant = i + tab[i][j-1].nbDest;
 			} else {
 				//Destruction simple
@@ -209,7 +239,7 @@ int B(data **tab, int n, int m, char* tabF1[], char* tabF2 [])
 			tab[i - 1][j - 1].nextJ = jSuivant;
 		}
 	}
-	/*On print toute les instructions ici*/
+	/*On print toutes les instructions ici*/
 	data cour = tab[0][0];
 	int ligneF2Cour = 0;
 	int ligneF1Cour = 0;
@@ -247,14 +277,5 @@ int c(char *ligne1, char *ligne2)
 		return 10 + strlen(ligne2); //cout d'une substitution
 	}
 }
-
-int Max(int a, int b)
-{
-	return(a > b ? a : b);
-}
-
-/*TODO: 
- * -le temps d'exec est encore un peu long et le patch n'est pas parfait
- */
 
 
