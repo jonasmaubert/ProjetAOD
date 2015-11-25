@@ -13,7 +13,7 @@
 /*Structures*/
 struct data {
 	int valeur;
-	char commande[200];
+	char commande[15];
 	int nextI;
 	int nextJ;
 };
@@ -23,6 +23,7 @@ typedef struct data data;
 void getNbLigne(int* nbLigne, int* longest, char* nomFichier);
 int B(data **tab, int n, int m, char* tabF1[], char* tabF2 []);
 int c(char *ligne1, char *ligne2);
+int Max(int a, int b);
 
 //gcc -g -Wall -Wextra -std=c99 src/computePatchOpt.c -o computePatchOpt
 
@@ -30,7 +31,6 @@ int c(char *ligne1, char *ligne2);
  *Fonction qui créé la patch de coup minimal entre deux fichiers
  * @param fichier initial
  * @param fichier final
- * @param patch
  */
 int main(int argc, char** argv)
 {
@@ -74,6 +74,7 @@ int main(int argc, char** argv)
 	/*Recherche du patch de cout minimal*/
 	data** tabBellMan;
 	tabBellMan = malloc((nbLigne1 + 1) * sizeof(data));
+	//int tailleCommande = taillePlusLongueLigne + 10;
 	for (int i = 0; i <= nbLigne1; i++) {
 		tabBellMan[i] = malloc((nbLigne2 + 1) * sizeof(data));
 	}
@@ -86,6 +87,7 @@ int main(int argc, char** argv)
 		}
 	}
 	int res = B(tabBellMan, nbLigne1, nbLigne2, tab1, tab2);
+	fprintf(stderr, "Min = %d", res);
 	//On ecrit le patch sur la sortie
 	//peut etre write serait mieux : write(1,instructions); 1= sortie standar, 2= sortie d erreur.
 	for (int k = 0; k <= nbLigne1; k++) {
@@ -102,7 +104,6 @@ int main(int argc, char** argv)
 	free(tab2);
 	return res;
 }
-
 
 void getNbLigne(int* nbLigne, int* longest, char* nomFichier)
 {
@@ -124,7 +125,7 @@ int B(data **tab, int n, int m, char* tabF1[], char* tabF2 [])
 	int res = 0;
 	int iSuivant = -1;
 	int jSuivant = -1;
-	char instTmp[200] = {0};
+	char instTmp[15] = {0};
 	/*Condition d'arret */
 	tab[n][m].nextI = -1;
 	tab[n][m].nextJ = -1;
@@ -134,17 +135,21 @@ int B(data **tab, int n, int m, char* tabF1[], char* tabF2 [])
 	tab[n - 1][m - 1].valeur = res;
 	if (res != 0) {
 		sprintf(instTmp, "= %d\n", n);
-		strcat(instTmp, tabF2[m - 1]);
+		//strcat(instTmp, tabF2[m - 1]);
 		strcpy(tab[n - 1][m - 1].commande, instTmp);
 	}
 	/*cas (n+1,)*/
 	/*PRB ce cas là conduit a créer des lignes trop grandes! better traiter sa commande à la fin*/
-	for (int j = 0; j < m; j++) {
-		for (int k = j; k < m; k++) {
-
-			res += 10 + strlen(tabF2[k]);
-		}
+	for (int j = m-1 ; j >= 0; j--) {
+		//for (int k = j; k < m; k++) {
+		res = tab[n][j + 1].valeur + 10 + strlen(tabF2[j]);
+		//}
+		sprintf(instTmp, "+ %d\n", n);
+		strcpy(tab[n][j].commande, instTmp);
+			//strcat(instTmp, tabF2[j - 1]);
 		tab[n][j].valeur = res;
+		tab[n][j].nextI = n;
+		tab[n][j].nextJ = j + 1;
 	}
 	/* cas (,m+1)*/
 	for (int i = 0; i < n; i++) {
@@ -159,84 +164,84 @@ int B(data **tab, int n, int m, char* tabF1[], char* tabF2 [])
 		}
 	}
 	/*cas général*/
-	for (int i = n; i > 0; i--) {
-		for (int j = m; j > 0; j--) {
-			//On utilise res et instTmp pour stocker les résultats temporaires
-			//ajout
-			res = tab[i - 1][j].valeur + 10 + strlen(tabF2[j - 1]);
-			sprintf(instTmp, "+ %d\n", i - 1);
-			strcat(instTmp, tabF2[j - 1]);
-			iSuivant = i - 1;
-			jSuivant = j;
-			// substitution
-			int valC = c(tabF1[i - 1], tabF2[j - 1]);
-			int aux = tab[i][j].valeur + valC;
-			if (aux <= res) {
-				if (valC != 0) {
-					sprintf(instTmp, "= %d\n", i);
-					strcat(instTmp, tabF2[j - 1]);
-				} else {
-					strcpy(instTmp, "");
-				}
-				iSuivant = i;
-				jSuivant = j;
-				res = aux;
-			}
-			if (tab[i][j - 1].commande[0] == 'd') {
-				//Debut de destruction multiple
-				aux = tab[i][j - 1].valeur + 5; 
-				if (aux < res) {
-					sprintf(instTmp, "D %d 2\n", i);//elle commence à la ligne actuelle et va jusqu'a la ligne de d
-					iSuivant = i+1; //On saute la case de destruction simple pour les isntructions
-					jSuivant = j - 1;
-					res = aux;
-				}
-			} else if (tab[i][j - 1].commande[0] == 'D') {
-				//continuité de destruction multiple
-				aux = tab[i][j - 1].valeur;
-				if (aux < res) {
-					char dest;
-					int tmp;
-					int nbD;
-					//on recupère le nombre de destruction multiple
-					sscanf(tab[i][j-1].commande,"%c %d %d",&dest, &tmp, &nbD);
-					sprintf(instTmp, "D %d %d\n", i, nbD+1);//elle commence à la ligne actuelle et va jusqu'a la ligne de d
-					iSuivant = i+nbD;
-					jSuivant = j - 1;
-					res = aux;
-				}
-			} else {
-				//Destruction simple
-				aux = tab[i][j - 1].valeur + 10;
-				if (aux < res) {
-					sprintf(instTmp, "d %d\n", i);
+	int K = 10;
+	for (int I = n; I > 0; I = I - K) {
+		for (int J = m; J > 0; J = J - K) {
+			for (int i = I; i > Max(I - K, 0); i--) {
+				for (int j = J; j > Max(J - K, 0); j--) {
+					//On utilise res et instTmp pour stocker les résultats temporaires
+					//Substitution
+					int valC = c(tabF1[i - 1], tabF2[j - 1]);
+					res = tab[i][j].valeur + valC;
+					if (valC != 0) {
+						sprintf(instTmp, "= %d\n", i);
+						//strcat(instTmp, tabF2[j - 1]);
+					} else {
+						strcpy(instTmp, "");
+					}
 					iSuivant = i;
-					jSuivant = j - 1;
-					res = aux;
+					jSuivant = j;
+					//Ajout
+					int aux = tab[i - 1][j].valeur + 10 + strlen(tabF2[j - 1]);
+					if (aux < res) {
+						//L'ajout se fait avant la ligne courante
+						sprintf(instTmp, "+ %d\n", i - 1);
+						//strcat(instTmp, tabF2[j - 1]);
+						iSuivant = i - 1;
+						jSuivant = j;
+						res = aux;
+					}
+					if (tab[i][j - 1].commande[0] == 'd') {
+						//Debut de destruction multiple
+						aux = tab[i][j - 1].valeur + 5;
+						if (aux < res) {
+							sprintf(instTmp, "D %d 2\n", i); //elle commence à la ligne actuelle et va jusqu'a la ligne de d
+							iSuivant = i + 1; //On saute la case de destruction simple pour les isntructions
+							jSuivant = j - 1;
+							res = aux;
+						}
+					} else if (tab[i][j - 1].commande[0] == 'D') {
+						//continuité de destruction multiple
+						aux = tab[i][j - 1].valeur;
+						if (aux < res) {
+							char dest;
+							int tmp;
+							int nbD;
+							//on recupère le nombre de destruction multiple
+							sscanf(tab[i][j - 1].commande, "%c %d %d", &dest, &tmp, &nbD);
+							sprintf(instTmp, "D %d %d\n", i, nbD + 1);
+							iSuivant = i + nbD;
+							jSuivant = j - 1;
+							res = aux;
+						}
+					} else {
+						//Destruction simple
+						aux = tab[i][j - 1].valeur + 10;
+						if (aux < res) {
+							sprintf(instTmp, "d %d\n", i);
+							iSuivant = i;
+							jSuivant = j - 1;
+							res = aux;
+						}
+					}
+					strcpy(tab[i - 1][j - 1].commande, instTmp);
+					tab[i - 1][j - 1].valeur = res;
+					tab[i - 1][j - 1].nextI = iSuivant;
+					tab[i - 1][j - 1].nextJ = jSuivant;
 				}
 			}
-			strcpy(tab[i - 1][j - 1].commande, instTmp);
-			tab[i - 1][j - 1].valeur = res;
-			tab[i - 1][j - 1].nextI = iSuivant;
-			tab[i - 1][j - 1].nextJ = jSuivant;
 		}
 	}
 	/*On print toute les instructions ici*/
 	data cour = tab[0][0];
+	int ligneF2Cour = 0;
 	do {
 		write(1, cour.commande, strlen(cour.commande));
-		//printf(cour.commande);
-		if (cour.nextI == n + 1) {
-			for (int j = cour.nextJ; j < m; j++) {
-				printf("+ %d\n", n);
-				write(1, tabF2[j], strlen(tabF2[j]));
-				//printf(tabF2[j]);
-			}
-			//On a fini
-			return tab[0][0].valeur;
-		} else {
-			cour = tab[cour.nextI][cour.nextJ];
+		if (cour.commande[0] == '+' || cour.commande[0] == '=') {
+			write(1, tabF2[ligneF2Cour], strlen(tabF2[ligneF2Cour]));
 		}
+		ligneF2Cour = cour.nextJ;
+		cour = tab[cour.nextI][cour.nextJ];
 	} while (cour.nextI != -1 && cour.nextJ != -1);
 	return tab[0][0].valeur;
 }
@@ -248,6 +253,11 @@ int c(char *ligne1, char *ligne2)
 	} else {
 		return 10 + strlen(ligne2); //cout d'une substitution
 	}
+}
+
+int Max(int a, int b)
+{
+	return(a > b ? a : b);
 }
 
 /*TODO: 
