@@ -62,28 +62,29 @@ et $c_1$ et $c_2$ de caractères des deux fichiers en entrée.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Compte rendu d'expérimentation (2 points)}
   \subsection{Conditions expérimentaless}
-     {\em Décrire les conditions permettant la reproductibilité des mesures: on demande la description
-      de la machine et la méthode utilisée pour mesurer le temps.
-      Nous avons effectué les mesures sur 
+     {\em Déscription des conditions permettant la reproductibilité des mesures.\\
+      Nous avons effectué les mesures sur un ordinateur de la salle E214.
       Pour calculer le temps nous avons utilisé la commande time, et pris le team réel.
      }
 
     \subsubsection{Description synthétique de la machine\,:} 
-      {\em indiquer ici le  processeur et sa fréquence, la mémoire, le système d'exploitation. 
-       Préciser aussi si la machine était monopolisée pour un test, ou notamment si 
-       d'autres processus ou utilisateurs étaient en cours d'exécution. 
-       Situation : ordinateur de la salle E103.
-       Tests effectués avec firefox en cours d'éxecution pour noter les résultats.
+      {\em 
+       Situation : ordinateur de la salle E214: \\
+       Processeur : Inter(R) Core(TM i5-4590 CPU \\
+       Fréquence : 3,30GHz \\
+       Mémoire : 15.5 Gio \\ 
+       Système d'exploitation : CentOS Version 6,7 (Final) \\
+       Tests effectués avec aucun programme en cours d'éxecution. \\
       } 
 
     \subsubsection{Méthode utilisée pour les mesures de temps\,: } 
       {\em 
-        Nous avons utilisé la commande ``time'' pour mesurer le temps de notre fonction. Les temps donnés sont en secondes.
+        Nous avons utilisé la commande time pour mesurer le temps de notre fonction. Les temps donnés sont en secondes.
 Pour la moyenne, le même test est fait 5 fois de suite.
       }
 
   \subsection{Mesures expérimentales}
-    {\em Le tableau suivant contient les temps d'exécution mesurés pour chacun des 6 benchmarks imposés
+    {\em Le tableau suivant contient les temps d'exécution mesurés pour chacun des 6 benchmarks imposés.\\
               (temps minimum, maximum et moyen sur 5 exécutions)
     }
 
@@ -96,17 +97,17 @@ Pour la moyenne, le même test est fait 5 fois de suite.
             & du patch     & min       & max     & moyen \\
           \hline
           \hline
-            benchmark1 &2540&   0,122   &0,133     &0,125     \\
+            benchmark1 &2540&   0,073   &0,077     &0,075     \\
           \hline
-            benchmark2 &3120&0,429      &0,436     &0,431     \\
+            benchmark2 &3120&0,224      &0,244     &0,232     \\
           \hline
-            benchmark3 &809&0,871     &0,913     &0,884     \\
+            benchmark3 &809&0,410    &0,421     &0,413     \\
           \hline
-            benchmark4 &1708&1,247     &1,275     &1,265     \\
+            benchmark4 &1708&0,609     &0,650     &0,621     \\
           \hline
-            benchmark5 &7553&2,337     &2,465     &2,387     \\
+            benchmark5 &7553&1,193     &1,229     &1,203     \\
           \hline
-            benchmark6 &37027&9,334     &9,440     &9,373     \\
+            benchmark6 &37027&4,554     &4,566     &4,560     \\
           \hline
           \hline
         \end{tabular}
